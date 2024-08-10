@@ -16,8 +16,8 @@ This package is intended to be used with user accounts and utilises a self-bot p
 ## Missing folders
 For this to work you need to make the following folders in the main directory of the project:
 
-databases 
- -> guilds
- -> dms
+databases
+-> guilds
+-> dms
 
  databases will be a folder, then guild and dms will be nested folders and this is where the databases for messages will be stored locally.
