@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MessageSave</title>
+        <style>
+            body, html {
+                background-color: #151515;
+                color: whitesmoke;
+                font-family: "Helvetica";
+            }
+
+            .inputs {
+                padding: 20px;
+            }
+
+            .idbox {
+                border: 1px solid #363636;
+                outline: none;
+                font-size: 13px;
+                padding: 2px;
+                border-radius: 2px;
+                background: #282828;
+                color: whitesmoke;
+            }
+
+            button {
+                border: 0;
+                background-color: #7289da;
+                color: whitesmoke;
+                padding: 2px 5px;
+                border-radius: 2px;
+                cursor: pointer;
+            }
+
+            .alert {
+                font-size: 12px;
+                visibility: hidden;
+            }
+
+            .messages {
+                width: 300px;
+            }
+
+            .message {
+                /* background: #363636; */
+                padding: 6px;
+                margin-bottom: 10px;
+                width: auto;
+                display: block;
+            }
+
+            .time {
+                color: #757575;
+            }
+
+            .user {
+                color: lightblue;
+            }
+        </style>
+    </head>
+<body>
+    <div class="inputs">
+        <input id="idinput" class="idbox" placeholder="User ID/Guild ID"></input>
+        <button id="guild">Search Guild</button> <button id="dm">Search User</button> <p id="alert" class="alert">User not found.</p>
+    </div>
+
+    <div id="messages">
+        <div>
+            <span class="message">
+                <span class="time"><sup>15:25</sup></span> <span class="user">@user</span>: <span>message</span>
+            </span>
+        </div>
+
+
+    </div>
+
+    <script>
+        function clearAll() {
+            Array.from(document.getElementById("messages").children).forEach((c) => {
+                c.remove();
+            });
+        };
+
+        function doAlert(text) {
+            document.getElementById("alert").innerText = text;
+            document.getElementById("alert").style.visibility = "visible";
+        };
+
+        function resetAlert() {
+            document.getElementById("alert").style.visibility = "hidden";
+        };
+
+
+        document.getElementById("guild").onclick = function () {
+            resetAlert();
+            clearAll();
+            fetch(`http://localhost:3000/guild/${document.getElementById("idinput").value}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Object.entries(data) == 0) {
+                        doAlert("No available messages in this guild.");
+                        return;
+                    };
+
+                    const sortedMessages = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+
+                    const messagesDiv = document.getElementById("messages");
+                    sortedMessages.forEach(message => {
+                        const messageDiv = document.createElement('div');
+                        const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const user = message.author.username || message.author.globalName;
+                        
+                        messageDiv.innerHTML = `
+                            <span class="message">
+                                <span class="time"><sup>${time}</sup></span> <span class="user">@${user}</span>: <span>${message.content}</span>
+                            </span>
+                        `;
+                        messagesDiv.appendChild(messageDiv);
+                    });
+                })
+                .catch(error => {
+                    doAlert("Failed to fetch guild messages?");              
+                });
+        };
+
+        document.getElementById("dm").onclick = function () {
+            resetAlert();
+            clearAll();
+            fetch(`http://localhost:3000/dm/${document.getElementById("idinput").value}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (Object.entries(data) == 0) {
+                        doAlert("No available messages in this DM.");
+                        return;
+                    };
+
+                    const sortedMessages = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+
+                    const messagesDiv = document.getElementById("messages");
+                    sortedMessages.forEach(message => {
+                        const messageDiv = document.createElement('div');
+                        const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const user = message.author.username || message.author.globalName;
+                        
+                        messageDiv.innerHTML = `
+                            <span class="message">
+                                <span class="time"><sup>${time}</sup></span> <span class="user">@${user}</span>: <span>${message.content}</span>
+                            </span>
+                        `;
+                        messagesDiv.appendChild(messageDiv);
+                    });
+                })
+                .catch(error => {
+                    doAlert("Failed to fetch DM messages?");              
+                });
+        };
+
+
+    </script>
+</body>
+</html>
